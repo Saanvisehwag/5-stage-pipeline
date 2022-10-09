@@ -55,3 +55,23 @@ class CPU:
         self.reg[9] = 9
         self.reg[13] = 4097
         self.opcode = ""
+
+    def start(self, clock):
+        global dataStallFreq
+        dataStallFreq = [0] * len(self.instruction_obj.instruction)
+
+        while (self.pc < len(self.instruction_obj.instruction) - 1):
+
+            global flagInst
+            if (self.instruction_delay > 1):
+                flagInst = 1
+
+            global jump
+            if (jump > 0 and flagBeq == 0):
+                self.pc = self.pc + jump - 2
+                jump = 0
+            
+            self.pc = self.pc + 1
+            self.dataStallCounter = 0
+            clock = nextInstClock["F"]
+            self.fetch(self.pc, clock)
