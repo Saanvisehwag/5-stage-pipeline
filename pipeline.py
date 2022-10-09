@@ -75,3 +75,109 @@ class CPU:
             self.dataStallCounter = 0
             clock = nextInstClock["F"]
             self.fetch(self.pc, clock)
+
+    def fetch(self, pc, clock):
+        ins = self.instruction_obj.instruction[pc]
+        
+        global flagRAW
+        global flagMem
+        global flagInst
+        global instMemAccess
+        global flagBeq 
+        global dataStallFreq
+
+        flagRAW = counter
+        if(flagInst == 1 and flagMem == 1 and flagRAW > 0 and flagBeq == 0):
+            if(self.memory_delay > self.instruction_delay and self.memory_delay > flagRAW):
+                for i in range(self.memory_delay):
+                    self.wrapper_fetch(ins, clock)
+                    instMemAccess.append(self.pc)
+                    clock = clock+1
+                flagMem = flagMem - 1
+                flagInst = 0
+                flagRAW = 0
+                nextInstClock["F"] = clock
+                self.decode(ins, clock=max(clock, nextInstClock["D"]))
+
+            elif(flagRAW+1 > self.instruction_delay and flagRAW+1 > self.memory_delay):
+                for i in range(flagRAW):
+                    self.wrapper_fetch(ins, clock)
+                    instMemAccess.append(self.pc)
+                    clock = clock+1
+                flagMem = flagMem - 1
+                flagInst = 0
+                flagRAW = 0
+                nextInstClock["F"] = clock
+                self.decode(ins, clock=max(clock, nextInstClock["D"]))
+
+            else:
+                for i in range(self.instruction_delay):
+                    self.wrapper_fetch(ins, clock)
+                    instMemAccess.append(self.pc)
+                    clock = clock+1
+                flagMem = flagMem - 1
+                flagInst = 0
+                flagRAW = 0
+                nextInstClock["F"] = clock
+                self.decode(ins, clock=max(clock, nextInstClock["D"]))
+
+        elif(flagInst == 1 and flagBeq == 0):
+            for i in range(self.instruction_delay):
+                self.wrapper_fetch(ins, clock)
+                instMemAccess.append(self.pc)
+                clock = clock+1
+            flagInst = 0
+            nextInstClock["F"] = clock
+            self.decode(ins, clock=max(clock, nextInstClock["D"]))
+
+        elif(flagMem == 1 and flagBeq == 0):
+            for i in range(self.memory_delay):
+                self.wrapper_fetch(ins, clock)
+                instMemAccess.append(self.pc)
+                clock = clock+1
+            flagMem = flagMem - 1
+            nextInstClock["F"] = clock
+            self.decode(ins, clock=max(clock, nextInstClock["D"]))
+
+        elif(flagRAW > 0 and flagBeq == 0):
+            for i in range(flagRAW):
+                self.wrapper_fetch(ins, clock)
+                instMemAccess.append(self.pc)
+                clock = clock+1
+            flagRAW = 0
+            nextInstClock["F"] = clock
+            self.decode(ins, clock=max(clock, nextInstClock["D"]))
+
+        elif(flagInst == 1 and flagBeq == 2):
+            flagBeq = 0
+            for i in range(2):
+                self.wrapper_fetch(ins, clock)
+                instMemAccess.append(self.pc)
+                clock = clock+1
+            dataStallFreq[self.pc] = self.dataStallCounter
+            flagInst = 0
+            nextInstClock["F"] = clock
+            return
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" fetch instruction - " + str(ins)+"\n \n")
+            l.write(" fetch is not stalled " + "\n \n")
+            instMemAccess.append(self.pc)
+            clock = clock+1
+
+            if(flagBeq == 2):
+                flagBeq = flagBeq - 1
+                nextInstClock["F"] = clock
+                self.decode(ins, clock=max(clock, nextInstClock["D"]))
+            elif(flagBeq == 1):
+                flagBeq = flagBeq - 1
+                nextInstClock["F"] = clock
+                return
+            else:
+                nextInstClock["F"] = clock
+                self.decode(ins, clock=max(clock, nextInstClock["D"]))
