@@ -181,3 +181,13 @@ class CPU:
             else:
                 nextInstClock["F"] = clock
                 self.decode(ins, clock=max(clock, nextInstClock["D"]))
+
+    def wrapper_fetch(self, instruction, clock):
+        l.write("\nclock - "+str(clock)+"\n")
+        for i in range(len(self.reg)):
+            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+        l.write("\n \n PC - "+str(self.pc)+"\n")
+        l.write(" fetch instruction - " + str(instruction)+"\n \n")
+        l.write(" fetch is stalled " + "\n \n")
+        self.dataStallCounter = self.dataStallCounter + 1
