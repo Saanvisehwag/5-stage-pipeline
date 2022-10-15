@@ -191,3 +191,499 @@ class CPU:
         l.write(" fetch instruction - " + str(instruction)+"\n \n")
         l.write(" fetch is stalled " + "\n \n")
         self.dataStallCounter = self.dataStallCounter + 1
+
+
+    def decode(self, instruction, clock):
+        global noOfRegInst
+        global noOfMemInst
+
+        global flagBeq
+        if (flagBeq == 1):
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" decode instruction - " +
+                    str(instruction)+"\n \n")
+            l.write(" decode is not stalled " + "\n \n")
+            clock = clock+1
+            nextInstClock["D"] = clock
+            return
+        
+        opcode = instruction[-7:]
+        global lastDest
+        global lastInst
+        global flagRAW
+        global flagMem
+        global counter
+            
+        if (opcode == "0100011"):
+            noOfMemInst = noOfMemInst + 1
+            rs2 = instruction[-25:-20]
+            rs1 = instruction[-20:-15]
+            offset = instruction[0:7] + instruction[-12:-7]
+
+            counter = 0
+            if(len(lastDest) == 1 and (rs1 == lastDest[0] or rs2 == lastDest[0]) and lastInst[0] == "0000011"):
+                flagRAW = self.memory_delay+1
+                flagMem = 0
+                for i in range(self.memory_delay+1):
+                    if(clock < nextInstClock["M"] - 1):
+                        counter = counter + 1
+                        self.wrapper_decode(instruction, clock)
+                        clock = clock+1
+                        flagRAW = counter
+
+                    elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                        self.wrapper_decode(instruction, clock)
+                        counter = counter + 1
+                        clock = clock+1
+                        flagRAW = counter
+                        break
+
+                    elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+                    else:
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+            elif(flagMem == 2):
+                for i in range(self.memory_delay):
+                    self.wrapper_decode(instruction, clock)
+                    clock = clock+1
+                flagMem = flagMem - 1
+
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n")
+                l.write(" decode instruction - " +
+                        str(instruction)+"\n \n")
+                l.write(" decode is not stalled " + "\n \n")
+                clock = clock+1
+            
+            lastDest.append(-1)
+            lastInst.append(-1)
+
+            nextInstClock["D"] = clock
+            self.execute_1(opcode, instruction, rs1=rs1,
+                           rs2=rs2, offset=offset, clock=max(clock, nextInstClock["E"]))
+            # SW
+
+        elif (opcode == "0010011"):
+            noOfRegInst = noOfRegInst + 1
+            rs1 = instruction[-20:-15]
+            rd = instruction[-12:-7]
+            imm = instruction[-32:-20]
+
+            counter = 0
+            if(len(lastDest) == 1 and (rs1 == lastDest[0]) and lastInst[0] == "0000011"):
+                flagRAW = self.memory_delay+1
+                flagMem = 0
+                for i in range(self.memory_delay+1):
+                    if(clock < nextInstClock["M"] - 1):
+                        counter = counter + 1
+                        self.wrapper_decode(instruction, clock)
+                        clock = clock+1
+                        flagRAW = counter
+                        
+                    elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                        self.wrapper_decode(instruction, clock)
+                        counter = counter + 1
+                        clock = clock+1
+                        flagRAW = counter
+                        break
+
+                    elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+                    else:
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+            elif(flagMem == 2):
+                for i in range(self.memory_delay):
+                    self.wrapper_decode(instruction, clock)
+                    clock = clock+1
+                flagMem = flagMem - 1
+
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n")
+                l.write(" decode instruction - " +
+                        str(instruction)+"\n \n")
+                l.write(" decode is not stalled " + "\n \n")
+                clock = clock+1
+
+            lastDest.append(rd)
+            lastInst.append(opcode)
+
+            nextInstClock["D"] = clock
+            self.execute_2(opcode, instruction, rs1,
+                           rd=rd, imm=imm, clock=max(clock, nextInstClock["E"]))
+
+            # addi
+        elif(opcode == "1111111"):
+            noOfMemInst = noOfMemInst + 1
+            rs2 = instruction[-12:-7]
+            rs1 = instruction[-20:-15]
+            imm = instruction[-32:-20]
+
+            counter = 0
+            if(len(lastDest) == 1 and (rs1 == lastDest[0] or rs2 == lastDest[0]) and lastInst[0] == "0000011"):
+                flagRAW = self.memory_delay+1
+                flagMem = 0
+                for i in range(self.memory_delay+1):
+                    if(clock < nextInstClock["M"] - 1):
+                        counter = counter + 1
+                        self.wrapper_decode(instruction, clock)
+                        clock = clock+1
+                        flagRAW = counter
+
+                    elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                        self.wrapper_decode(instruction, clock)
+                        counter = counter + 1
+                        clock = clock+1
+                        flagRAW = counter
+                        break
+
+                    elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+                    else:
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+            elif(flagMem == 2):
+                for i in range(self.memory_delay):
+                    self.wrapper_decode(instruction, clock)
+                    clock = clock+1
+                flagMem = flagMem - 1
+            
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n")
+                l.write(" decode instruction - " +
+                        str(instruction)+"\n \n")
+                l.write(" decode is not stalled " + "\n \n")
+                clock = clock+1
+            
+            lastDest.append(-1)
+            lastInst.append(-1)
+
+            nextInstClock["D"] = clock
+            self.execute_6(opcode, instruction, rs1,
+                           rs2=rs2, imm=imm, clock=max(clock, nextInstClock["E"]))
+
+        elif(opcode == "0000000"):
+            noOfMemInst = noOfMemInst + 1
+
+            if(flagMem == 2):
+                for i in range(self.memory_delay):
+                    self.wrapper_decode(instruction, clock)
+                    clock = clock+1
+                flagMem = flagMem - 1
+            
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n")
+                l.write(" decode instruction - " +
+                        str(instruction)+"\n \n")
+                l.write(" decode is not stalled " + "\n \n")
+                clock = clock+1
+
+            lastDest.append(-1)
+            lastInst.append(-1)
+
+            nextInstClock["D"] = clock
+            self.execute_7(opcode, instruction, clock=max(clock, nextInstClock["E"]))
+
+        elif (opcode == "0000011"):
+            noOfMemInst = noOfMemInst + 1
+            rs1 = instruction[-20:-15]
+            rd = instruction[-12:-7]
+            offset = instruction[-32:-20]
+            
+            if(flagMem == 2):
+                for i in range(self.memory_delay):
+                    self.wrapper_decode(instruction, clock)
+                    clock = clock+1
+                flagMem = flagMem - 1
+            
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n")
+                l.write(" decode instruction - " +
+                        str(instruction)+"\n \n")
+                l.write(" decode is not stalled " + "\n \n")
+                clock = clock+1
+
+            lastDest.append(rd)
+            lastInst.append(opcode)
+
+            nextInstClock["D"] = clock
+            self.execute_3(opcode, instruction, rs1,
+                           rd, offset, clock=max(clock, nextInstClock["E"]))
+
+            # LW
+
+        elif (opcode == "1100011"):
+            noOfRegInst = noOfRegInst + 1
+            rs2 = instruction[-25:-20]
+            rs1 = instruction[-20:-15]
+            offset = instruction[0] + instruction[-8] + instruction[1:7] + instruction[-12:-8]
+
+            counter = 0
+            if(len(lastDest) == 1 and (rs1 == lastDest[0] or rs2 == lastDest[0]) and lastInst[0] == "0000011"):
+                flagRAW = self.memory_delay+1
+                flagMem = 0
+                for i in range(self.memory_delay+1):
+                    if(clock < nextInstClock["M"] - 1):
+                        counter = counter + 1
+                        self.wrapper_decode(instruction, clock)
+                        clock = clock+1
+                        flagRAW = counter
+
+                    elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                        self.wrapper_decode(instruction, clock)
+                        counter = counter + 1
+                        clock = clock+1
+                        flagRAW = counter
+                        break
+
+                    elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+                    else:
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+            elif(flagMem == 2):
+                for i in range(self.memory_delay):
+                    self.wrapper_decode(instruction, clock)
+                    clock = clock+1
+                flagMem = flagMem - 1
+
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n")
+                l.write(" decode instruction - " +
+                        str(instruction)+"\n \n")
+                l.write(" decode is not stalled " + "\n \n")
+                clock = clock+1
+            
+            lastDest.append(-1)
+            lastInst.append(-1)
+
+            nextInstClock["D"] = clock
+            self.execute_4(opcode, instruction, rs1,
+                           rs2, offset, clock=max(clock, nextInstClock["E"]))
+
+            # BEQ
+
+        elif (opcode == "0110011"):
+            noOfRegInst = noOfRegInst + 1
+            rs1 = instruction[-20:-15]
+            rd = instruction[-12:-7]
+            rs2 = instruction[-25:-20]
+            diff1 = instruction[0:5]
+            diff2 = instruction[-15:-12]
+
+            counter = 0
+            if(len(lastDest) == 1 and (rs1 == lastDest[0] or rs2 == lastDest[0]) and lastInst[0] == "0000011"):
+                flagRAW = self.memory_delay+1
+                flagMem = 0
+                for i in range(self.memory_delay+1):
+                    if(clock < nextInstClock["M"] - 1):
+                        counter = counter + 1
+                        self.wrapper_decode(instruction, clock)
+                        clock = clock+1
+                        flagRAW = counter
+
+                    elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                        self.wrapper_decode(instruction, clock)
+                        counter = counter + 1
+                        clock = clock+1
+                        flagRAW = counter
+                        break
+
+                    elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+                    else:
+                        l.write("\nclock - "+str(clock)+"\n")
+                        for i in range(len(self.reg)):
+                            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                        l.write("\n \n PC - "+str(self.pc)+"\n")
+                        l.write(" decode instruction - " +
+                                str(instruction)+"\n \n")
+                        l.write(" decode is not stalled " + "\n \n")
+                        clock = clock+1
+                        flagRAW = 0
+                        break
+
+            elif(flagMem == 2):
+                    for i in range(self.memory_delay):
+                        self.wrapper_decode(instruction, clock)
+                        clock = clock+1
+                    flagMem = flagMem - 1
+
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n")
+                l.write(" decode instruction - " +
+                        str(instruction)+"\n \n")
+                l.write(" decode is not stalled " + "\n \n")
+                clock = clock+1
+
+            lastDest.append(rd)
+            lastInst.append(opcode)
+
+            if (diff1 == "00000" and diff2 == "000"):
+                nextInstClock["D"] = clock
+                self.execute_5(opcode, instruction, rs1, rs2, rd,
+                               "add", self.reg, clock=max(clock, nextInstClock["E"]))
+
+            elif (diff1 == "01000" and diff2 == "000"):
+                nextInstClock["D"] = clock
+                self.execute_5(opcode, instruction, rs1, rs2, rd,
+                               "sub", self.reg, clock=max(clock, nextInstClock["E"]))
+
+            elif (diff1 == "00000" and diff2 == "110"):
+                nextInstClock["D"] = clock
+                self.execute_5(opcode, instruction, rs1, rs2, rd,
+                               "or", self.reg, clock=max(clock, nextInstClock["E"]))
+
+            elif (diff1 == "00000" and diff2 == "111"):
+                nextInstClock["D"] = clock
+                self.execute_5(opcode, instruction, rs1, rs2, rd,
+                               "and", self.reg, clock=max(clock, nextInstClock["E"]))
+
+            elif (diff1 == "01000" and diff2 == "101"):
+                nextInstClock["D"] = clock
+                self.execute_5(opcode, instruction, rs1, rs2, rd,
+                               "sra", self.reg, clock=max(clock, nextInstClock["E"]))
+
+            elif (diff1 == "00000" and diff2 == "101"):
+                nextInstClock["D"] = clock
+                self.execute_5(opcode, instruction, rs1, rs2, rd,
+                               "srl", self.reg, clock=max(clock, nextInstClock["E"]))
+
+    def wrapper_decode(self, instruction, clock):
+        l.write("\nclock - "+str(clock)+"\n")
+        for i in range(len(self.reg)):
+            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+        l.write("\n \n PC - "+str(self.pc)+" \n")
+        l.write(" decode instruction - " + str(instruction)+"\n \n")
+        l.write(" decode is stalled " + "\n \n")
+        self.dataStallCounter = self.dataStallCounter + 1
