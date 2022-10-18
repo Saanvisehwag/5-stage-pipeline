@@ -687,3 +687,481 @@ class CPU:
         l.write(" decode instruction - " + str(instruction)+"\n \n")
         l.write(" decode is stalled " + "\n \n")
         self.dataStallCounter = self.dataStallCounter + 1
+
+    def execute_1(self, opcode, instruction, rs1, rs2, offset, clock=0):
+        global flagMem
+
+        counter = 0
+        if (flagMem == 3):
+            for i in range(self.memory_delay):
+                if(clock < nextInstClock["M"] - 1):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+
+                elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+                    break
+
+                elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+                else:
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+            
+            if(counter > 0):
+                flagMem = flagMem - 1
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" execute instruction - " + str(instruction)+"\n \n")
+            l.write(" execute is not stalled " + "\n \n")
+            clock = clock+1
+
+        nextInstClock["E"] = clock
+        self.memory(opcode, instruction, rs1=rs1, rs2=rs2, offset=offset,
+                    reg=self.reg, clock=max(clock, nextInstClock["M"]))
+        # sw
+
+    def execute_2(self, opcode, instruction, rs1, rd, imm="", clock=0):
+        global flagMem
+        
+        counter = 0
+        if (flagMem == 3):
+            for i in range(self.memory_delay):
+                if(clock < nextInstClock["M"] - 1):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+
+                elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+                    break
+
+                elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+                else:
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+            if(counter > 0):
+                flagMem = flagMem - 1
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" execute instruction - " + str(instruction)+"\n \n")
+            l.write(" execute is not stalled " + "\n \n")
+            clock = clock+1
+
+        self.reg[self.binary_to_decimal(rd)] = self.reg[self.binary_to_decimal(
+            rs1)] + self.binary_to_decimal(imm)
+        
+        nextInstClock["E"] = clock
+        self.memory(opcode, instruction, reg=self.reg, clock=max(clock, nextInstClock["M"]))
+        # addi
+
+    def execute_6(self, opcode, instruction, rs1, rs2, imm, clock=0):
+        global flagMem
+        
+        counter = 0
+        if (flagMem == 3):
+            for i in range(self.memory_delay):
+                if(clock < nextInstClock["M"] - 1):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+
+                elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+                    break
+
+                elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+                else:
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+            if(counter > 0):
+                flagMem = flagMem - 1
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" execute instruction - " + str(instruction)+"\n \n")
+            l.write(" execute is not stalled " + "\n \n")
+            clock = clock+1
+
+        nextInstClock["E"] = clock
+
+        self.memory(opcode, instruction, rs1=rs1, rs2=rs2, offset=imm, reg=self.reg, clock=max(clock, nextInstClock["M"]))
+
+    def execute_7(self, opcode, instruction, clock=0):
+  
+        global flagMem
+        counter = 0
+        if (flagMem == 3):
+            for i in range(self.memory_delay):
+                if(clock < nextInstClock["M"] - 1):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+
+                elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+                    break
+
+                elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+                else:
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+            if(counter > 0):
+                flagMem = flagMem - 1
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" execute instruction - " + str(instruction)+"\n \n")
+            l.write(" execute is not stalled " + "\n \n")
+            clock = clock+1
+
+        nextInstClock["E"] = clock
+        self.memory(opcode, instruction, reg=self.reg, clock=max(clock, nextInstClock["M"]))
+
+    def execute_3(self, opcode, instruction, rs1, rd, offset, clock=0):
+        global flagMem
+        counter = 0
+        if (flagMem == 3):
+            for i in range(self.memory_delay):
+                if(clock < nextInstClock["M"] - 1):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+
+                elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+                    break 
+
+                elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+                else:
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+            
+            if(counter > 0):
+                flagMem = flagMem - 1
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" execute instruction - " + str(instruction)+"\n \n")
+            l.write(" execute is not stalled " + "\n \n")
+            clock = clock+1
+
+        nextInstClock["E"] = clock
+        self.memory(opcode, instruction, rs1=rs1, rd=rd, offset=offset,
+                    reg=self.reg, clock=max(clock, nextInstClock["M"]))
+        # lw
+
+    def execute_4(self, opcode, instruction, rs1, rs2, offset, clock=0):
+        global flagMem
+        counter = 0
+        if (flagMem == 3):
+            for i in range(self.memory_delay):
+                if(clock < nextInstClock["M"] - 1):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+
+                elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    flagMem = flagMem - 1
+                    break
+
+                elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+                else:
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+            
+            if(counter > 0):
+                flagMem = flagMem - 1
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" execute instruction - " + str(instruction)+"\n \n")
+            l.write(" execute is not stalled " + "\n \n")
+            clock = clock+1
+
+        # BEQ
+        if(self.reg[self.binary_to_decimal(rs1)] == self.reg[self.binary_to_decimal(rs2)]):
+            global jump
+            jump = self.binary_to_decimal(offset)
+            global flagBeq
+            flagBeq = 2
+        
+        nextInstClock["E"] = clock
+        self.memory(opcode, instruction, clock=max(clock, nextInstClock["M"]))
+
+    def execute_5(self, opcode, instruction, rs1, rs2, rd, operation, reg, clock=0):
+        global flagMem
+        counter = 0
+        if (flagMem == 3):
+            for i in range(self.memory_delay):
+                if(clock < nextInstClock["M"] - 1):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+
+                elif(clock == nextInstClock["M"] - 1 and counter != 0):
+                    self.wrapper_ex(instruction, clock)
+                    counter = counter + 1
+                    clock = clock+1
+                    break
+
+                elif(clock == nextInstClock["M"] - 1 and counter == 0):
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+
+                else:
+                    l.write("\nclock - "+str(clock)+"\n")
+                    for i in range(len(self.reg)):
+                        l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                    l.write("\n \n PC - "+str(self.pc)+"\n")
+                    l.write(" execute instruction - " + str(instruction)+"\n \n")
+                    l.write(" execute is not stalled " + "\n \n")
+                    clock = clock+1
+                    flagMem = 0
+                    break
+            
+            if(counter > 0):
+                flagMem = flagMem - 1
+                
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n")
+            l.write(" execute instruction - " + str(instruction)+"\n \n")
+            l.write(" execute is not stalled " + "\n \n")
+            clock = clock+1
+
+        if (operation == "add"):
+            rs1 = self.binary_to_decimal(rs1)
+            rs2 = self.binary_to_decimal(rs2)
+            rd = self.binary_to_decimal(rd)
+            self.reg=reg
+            reg[rd] = reg[rs1] + reg[rs2]
+
+        if (operation == "sub"):
+            rs1 = self.binary_to_decimal(rs1)
+            rs2 = self.binary_to_decimal(rs2)
+            rd = self.binary_to_decimal(rd)
+            reg[rd] = reg[rs1] - reg[rs2]
+            self.reg=reg
+
+        if (operation == "or"):
+            rs1 = self.binary_to_decimal(rs1)
+            rs2 = self.binary_to_decimal(rs2)
+            rd = self.binary_to_decimal(rd)
+            reg[rd] = int(reg[rs1]) | int(reg[rs2])
+            self.reg=reg
+
+        if (operation == "and"):
+            rs1 = self.binary_to_decimal(rs1)
+            rs2 = self.binary_to_decimal(rs2)
+            rd = self.binary_to_decimal(rd)
+            reg[rd] = int(reg[rs1]) & int(reg[rs2])
+            self.reg=reg
+
+        if (operation == "sra"):
+            rs1 = self.binary_to_decimal(rs1)
+            rs2 = self.binary_to_decimal(rs2)
+
+            val = self.DecimalToBinary(reg[rs2], 32)
+
+            val1 = self.binary_to_decimal(val[-5:])
+
+            rd = self.binary_to_decimal(rd)
+            reg[rd] = int(reg[rs1]) >> val1
+            self.reg=reg
+
+        if (operation == "srl"):
+            rs1 = self.binary_to_decimal(rs1)
+            rs2 = self.binary_to_decimal(rs2)
+            rd = self.binary_to_decimal(rd)
+            val = self.DecimalToBinary(reg[rs2], 32)
+            sign = 1
+            if (reg[rs1] < 0):
+                reg[rd] = 0
+                self.reg=reg
+            else:
+                val1 = self.binary_to_decimal(val[-5:])
+                reg[rd] = (int(reg[rs1]) >> val1) * sign
+                self.reg=reg
+
+        nextInstClock["E"] = clock
+        self.memory(opcode, instruction, reg=reg, clock=max(clock, nextInstClock["M"]))
