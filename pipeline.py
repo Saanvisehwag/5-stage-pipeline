@@ -1165,3 +1165,144 @@ class CPU:
 
         nextInstClock["E"] = clock
         self.memory(opcode, instruction, reg=reg, clock=max(clock, nextInstClock["M"]))
+
+    def wrapper_ex(self, instruction, clock=0):
+        l.write("\nclock - "+str(clock)+"\n")
+        for i in range(len(self.reg)):
+            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+        l.write("\n \n PC - "+str(self.pc)+"\n")
+        l.write(" execute instruction - " + str(instruction)+"\n \n")
+        l.write(" execute is stalled " + "\n \n")
+        self.dataStallCounter = self.dataStallCounter + 1
+
+    def memory(self, opcode, instruction, rs1="", rs2="", rd="", offset="", reg=[], clock=0):
+        global dataMemAccess
+
+        global flagMem
+        if (opcode == "0100011"):
+            if (self.memory_delay > 1):
+                flagMem = 3
+                for i in range(self.memory_delay):
+                    self.wrapper_mem(instruction, clock)
+                    dataMemAccess[clock] = self.binary_to_decimal(reg[self.binary_to_decimal(rs1)]) + self.binary_to_decimal(offset)
+                    clock = clock+1  
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n ")
+                l.write(" memory instruction - " + str(instruction)+"\n \n")
+                l.write(" memory is not stalled " + "\n \n")
+                dataMemAccess[clock] = self.binary_to_decimal(reg[self.binary_to_decimal(rs1)]) + self.binary_to_decimal(offset)
+                clock = clock+1
+
+            self.memory_object.mem[self.binary_to_decimal(
+                reg[self.binary_to_decimal(rs1)]) + self.binary_to_decimal(offset)] = reg[self.binary_to_decimal(rs2)]
+            self.reg=reg
+            nextInstClock["M"] = clock
+            self.writeback(opcode, instruction, clock=max(clock, nextInstClock["W"]))
+
+        elif (opcode == "0000011"):
+            if (self.memory_delay > 1):
+                flagMem = 3
+                for i in range(self.memory_delay):
+                    self.wrapper_mem(instruction, clock)
+                    dataMemAccess[clock] = self.binary_to_decimal(reg[self.binary_to_decimal(rs1)]) + self.binary_to_decimal(offset)
+                    clock = clock+1
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n ")
+                l.write(" memory instruction - " + str(instruction)+"\n \n")
+                l.write(" memory is not stalled " + "\n \n")
+                dataMemAccess[clock] = self.binary_to_decimal(reg[self.binary_to_decimal(rs1)]) + self.binary_to_decimal(offset)
+                clock = clock+1
+
+            reg[self.binary_to_decimal(rd)] = self.memory_object.mem[self.binary_to_decimal(
+                reg[self.binary_to_decimal(rs1)]) + self.binary_to_decimal(offset)]
+            self.reg=reg
+            nextInstClock["M"] = clock
+            self.writeback(opcode, instruction, reg=reg, clock=max(clock, nextInstClock["W"]))
+
+        elif (opcode == "1100011"):
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n ")
+            l.write(" memory instruction - " + str(instruction)+"\n \n")
+            l.write(" memory is not stalled " + "\n \n")
+            clock = clock+1
+            nextInstClock["M"] = clock
+            self.writeback(opcode, instruction, clock=max(clock, nextInstClock["W"]))
+
+        elif (opcode == "1111111"):
+       
+            if (self.memory_delay > 1):
+                flagMem = 3
+                for i in range(self.memory_delay):
+                    self.wrapper_mem(instruction, clock)
+                    dataMemAccess[clock] = reg[self.binary_to_decimal(rs2)]+ self.binary_to_decimal(offset)
+                    clock = clock+1
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n ")
+                l.write(" memory instruction - " + str(instruction)+"\n \n")
+                l.write(" memory is not stalled " + "\n \n")
+                dataMemAccess[clock] = reg[self.binary_to_decimal(rs2)]+ self.binary_to_decimal(offset)
+                clock = clock+1
+
+            self.memory_object.mem[reg[self.binary_to_decimal(rs2)]+ self.binary_to_decimal(offset)] = reg[self.binary_to_decimal(rs1)]
+            nextInstClock["M"] = clock
+            self.writeback(opcode, instruction,reg=reg, clock=max(clock, nextInstClock["W"]))
+
+        elif (opcode == "0000000"):
+            if (self.memory_delay > 1):
+                flagMem = 3
+                for i in range(self.memory_delay):
+                    self.wrapper_mem(instruction, clock)
+                    dataMemAccess[clock] = 4100
+                    clock = clock+1
+            else:
+                l.write("\nclock - "+str(clock)+"\n")
+                for i in range(len(self.reg)):
+                    l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+                l.write("\n \n PC - "+str(self.pc)+"\n ")
+                l.write(" memory instruction - " + str(instruction)+"\n \n")
+                l.write(" memory is not stalled " + "\n \n")
+                dataMemAccess[clock] = 4100
+                clock = clock+1
+
+            self.memory_object.mem[4100] = 1
+            nextInstClock["M"] = clock
+            self.writeback(opcode, instruction, reg=reg,clock=max(clock, nextInstClock["W"]))
+
+        else:
+            l.write("\nclock - "+str(clock)+"\n")
+            for i in range(len(self.reg)):
+                l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+            l.write("\n \n PC - "+str(self.pc)+"\n ")
+            l.write(" memory instruction - " + str(instruction)+"\n \n")
+            l.write(" memory is not stalled " + "\n \n")
+            clock = clock+1
+            nextInstClock["M"] = clock
+            self.writeback(opcode, instruction, reg, clock=max(clock, nextInstClock["W"]))
+
+    def wrapper_mem(self, instruction, clock=0):
+        l.write("\nclock - "+str(clock)+"\n")
+        for i in range(len(self.reg)):
+            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+        l.write("\n \n PC - "+str(self.pc)+"\n ")
+        l.write(" memory instruction - " + str(instruction)+"\n \n")
+        l.write(" memory is stalled " + "\n \n")
+        self.dataStallCounter = self.dataStallCounter + 1
