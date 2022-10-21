@@ -1306,3 +1306,128 @@ class CPU:
         l.write(" memory instruction - " + str(instruction)+"\n \n")
         l.write(" memory is stalled " + "\n \n")
         self.dataStallCounter = self.dataStallCounter + 1
+
+    def writeback(self, opcode, instruction, reg=[], clock=0):
+        l.write("\nclock - "+str(clock)+"\n")
+        for i in range(len(self.reg)):
+            l.write("reg "+str(i)+" : "+str(self.reg[i])+", ")
+
+        l.write("\n \n PC - "+str(self.pc)+"\n ")
+        l.write(" writeback instruction - " + str(instruction)+"\n \n")
+        l.write(" writeback is not stalled " + "\n \n")
+
+        clock = clock+1
+        nextInstClock["W"] = clock
+        global dataStallFreq
+        if (opcode == "1100011" or opcode == "0100011"):
+            dataStallFreq[self.pc] = self.dataStallCounter
+            return
+        else:
+            self.reg = reg
+        
+        dataStallFreq[self.pc] = self.dataStallCounter
+            
+
+    def binary_to_decimal(self, binary):
+        binary = int(binary)
+        decimal, i = 0, 0
+        while (binary != 0):
+            dec = binary % 10
+            decimal = decimal + dec * pow(2, i)
+            binary = binary // 10
+            i += 1
+        return decimal
+
+    def DecimalToBinary(self, n, nob):
+        answer = ""
+        n = int(n)
+        while (n > 0):
+            if (n % 2 == 0):
+                answer = "0" + answer
+            else:
+                answer = "1" + answer
+            n //= 2
+        answer = ((nob - len(answer)) * "0") + answer
+        return answer
+
+    def countTotalBits(self, num):
+        binary = bin(num)[2:]
+        return len(binary)
+    
+
+class Instruction_Memory:
+    def __init__(self, instruction):
+        self.instruction = instruction
+        pass
+
+    def read_instruction(self, addr):
+        return self.instruction[addr]
+
+def graphDeliverables():
+    val=[noOfRegInst+3, noOfMemInst]
+    #regins,memins
+    labels=["Register Instructions","Memory Instructions"]
+    plt.pie(val,labels=labels,autopct='%1.1f%%')
+    plt.title("Number of Register V/s Memory Instructions")
+    plt.show()
+
+    #Number of Register V/s Memory Instructions  Ends here
+
+    data_stall_freq=dataStallFreq
+    arr_ind=[]
+    for i in range(len(data_stall_freq)):
+        arr_ind.append(i)
+    plt.xlabel("Program Counter")
+    plt.ylabel("Number of Data stalls")
+    plt.title("Number of Data Stalls in Program")
+    plt.bar(arr_ind,data_stall_freq,width=0.5)
+    plt.show()
+
+    #Number of Data Stalls in Program Ends here
+
+    Instruction_number=instMemAccess
+    clock=[]
+    for i in range(len(Instruction_number)):
+        clock.append(i)
+        
+    plt.plot(clock,Instruction_number,color='green',linestyle='dashed',marker='o',markerfacecolor='red')
+    plt.xlabel("Clock")
+    plt.ylabel("Instruction Number")
+    plt.title("Instruction Memory Access pattern")
+    plt.show()
+
+    #Instruction Memory Access pattern Ends here
+
+    dict=dataMemAccess
+    clock_mem=[]
+    memory_location=[]
+    for i in dict:
+        clock_mem.append(i)
+        memory_location.append(dict[i])
+    plt.plot(clock_mem,memory_location,color='green',linestyle='dashed',marker='o',markerfacecolor='red')
+    plt.xlabel("Clock")
+    plt.ylabel("Memory Location")
+    plt.title("Data Memory Access pattern")
+    plt.show()
+
+def main():
+    instruction_delay = int(input("Enter instruction Delay: "))
+    memory_delay = int(input("Enter memory Delay: "))
+
+    f = open("test.txt", "r")
+    file = f.read()
+    instruction_file = file.split("\n")
+
+    memory_object = Mem()
+    Instruction_obj = Instruction_Memory(instruction_file)
+
+    cpu = CPU(Instruction_obj, memory_object, instruction_delay, memory_delay)
+    cpu.start(clock)
+
+    l.write("Memory - \n\n")
+    for i in range(len(memory_object.mem)):
+        l.write("memory "+str(i)+" : "+str(memory_object.mem[i])+", ")
+    
+    graphDeliverables()
+
+main()
